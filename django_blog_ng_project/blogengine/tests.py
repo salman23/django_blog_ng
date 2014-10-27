@@ -26,12 +26,8 @@ class AdminTest(LiveServerTestCase):
         
 
     def test_login(self):
-        # before login
-        response = self.client.get('/admin/')
-        self.assertNotEqual(response.status_code, 200)
-
         # login page
-        response = self.client.get('/admin/login/?next=/admin/')
+        response = self.client.get('/admin/', follow=True)
         self.assertEquals(response.status_code, 200)
         self.assertEqual(isinstance(response.content, str), True)
         self.assertTrue('Log in' in response.content)
@@ -54,3 +50,49 @@ class AdminTest(LiveServerTestCase):
         self.client.logout()
         response = self.client.get('/admin/')
         self.assertNotEquals(response.status_code, 200)
+
+    def test_create_post(self):
+        # login
+        self.client.login(username='ngtest', password='password')
+
+        # check response code 
+        response = self.client.get('/admin/blogengine/post/add/')
+        self.assertEquals(response.status_code, 200)
+
+        post = {
+            'title': 'My first post',
+            'text': 'This is a test post checking from the test.py',
+            'pub_date_0': '2014-10-27',
+            'pub_date_1': '06:57:26',
+        }
+
+        response = self.client.post('/admin/blogengine/post/add/', post, follow=True)
+
+        self.assertEquals(response.status_code, 200)
+        self.assertTrue('added successfully' in response.content)
+        
+        all_post = Post.objects.all()
+        self.assertEquals(len(all_post), 1)
+
+
+class PostViewTest(object):
+    """docstring for PostViewTest"""
+    def setUp(self, arg):
+        self.client = Client()
+
+    def test_index(self):
+        post = Post()
+        post.title = 'My first post'
+        post.text = 'This is a test post checking from the test.py',
+        post.pub_date = timezone.now()
+        post.save()
+        all_post = Post.objects.all()
+        self.assertEquals(len(all_post), 1)
+
+        # fetch the index
+        response = self.client.get('/blog/')
+        self.assertEquals(response.status_code, 200)
+        self.assertTrue(post.title in response.content)
+        self.assertTrue(post.text in response.content)
+        self.assertTrue(str(post.pub_date.year) in response.content)
+        self.assertTrue(str(post.pub_date.day) in response.content)        
