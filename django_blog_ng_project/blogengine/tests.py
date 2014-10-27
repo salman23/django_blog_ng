@@ -1,11 +1,12 @@
 from django.test import TestCase, LiveServerTestCase, Client
 from django.utils import timezone
 from blogengine.models import Post
+from selenium import webdriver
 
 # Create your tests here.
 
 class PostTest(TestCase):
-    def test_create_test(self):
+    def test_create_post(self):
         post = Post()
         post.title = 'First test post'
         post.text = 'Fists test post body'
@@ -18,13 +19,38 @@ class PostTest(TestCase):
 
 
 class AdminTest(LiveServerTestCase):
+    fixtures = ['users.json']
+
+    def setUp(self):
+        self.client = Client()
+        
+
     def test_login(self):
-        c = Client()
-        response1 = c.get('/admin/')
-        response2 = c.get('/admin/login/?next=/admin/')
-        self.assertEqual(response1.status_code, 302)
-        self.assertEqual(response2.status_code, 200)
-        self.assertTrue('Log in' in response2.content)
-        c.login(username='salman', password="2312")
-        response = c.get('/admin/')
+        # before login
+        response = self.client.get('/admin/')
+        self.assertNotEqual(response.status_code, 200)
+
+        # login page
+        response = self.client.get('/admin/login/?next=/admin/')
+        self.assertEquals(response.status_code, 200)
+        self.assertEqual(isinstance(response.content, str), True)
+        self.assertTrue('Log in' in response.content)
+        
+        # login
+        login = self.client.login(username='ngtest', password="password")
+        self.assertEqual(login, True)
+        response = self.client.get('/admin/')
         self.assertEqual(response.status_code, 200)
+        self.assertTrue('Log out' in response.content)
+    
+    def test_logout(self):
+        # login
+        login = self.client.login(username='ngtest', password="password")
+        self.assertEqual(login, True)
+        response = self.client.get('/admin/')
+        self.assertEqual(response.status_code, 200)
+
+        # logout 
+        self.client.logout()
+        response = self.client.get('/admin/')
+        self.assertNotEquals(response.status_code, 200)
