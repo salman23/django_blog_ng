@@ -53,4 +53,6 @@ docs/_build/
 # PyBuilder
 target/
 .idea/
+gengine/static/bower_components/
+
 

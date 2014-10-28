@@ -1,0 +1,25 @@
+{
+  "name": "salman",
+  "version": "0.1",
+  "homepage": "https://github.com/salman23/django_blog_ng",
+  "authors": [
+    "Salman Wahed <salman2312@gmail.com>"
+  ],
+  "description": "tutorial",
+  "keywords": [
+    "django"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "blogengine/static/bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "~3.2.0",
+    "html5-boilerplate": "~4.3.0"
+  }
+}
