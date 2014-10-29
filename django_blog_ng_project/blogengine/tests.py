@@ -65,6 +65,7 @@ class AdminTest(LiveServerTestCase):
             'text': 'This is a test post checking from the test.py',
             'pub_date_0': '2014-10-27',
             'pub_date_1': '06:57:26',
+            'slug': 'my-first-post',
         }
 
         response = self.client.post('/admin/blogengine/post/add/', post, follow=True)
@@ -97,13 +98,36 @@ class PostViewTest(LiveServerTestCase):
         # check the post title in response
         self.assertTrue(post.title in response.content)
 
-        # check the post text in response
-        self.assertTrue(markdown.markdown(post.text) in response.content)
-
         # check the post date year in response
         self.assertTrue(str(post.pub_date.year) in response.content)
         self.assertTrue(str(post.pub_date.day) in response.content)
 
         # check the link is markedup as properly
         self.assertTrue('<a href="http://127.0.0.1:8000/blog/">my first blog post</a>' in response.content)
+
+    def test_post_page(self):
+        post = Post()
+        post.title = 'My first post'
+        post.text = 'This is [my first blog post](http://127.0.0.1:8000/blog/)',
+        post.pub_date = timezone.now()
+        post.slug = 'my-first-post'
+        post.save()
+        all_post = Post.objects.all()
+        only_post = all_post[0]
+
+        # check post the post
+        self.assertEquals(only_post, post)
+
+        # check attributes
+        self.assertEqual(only_post.title, 'My first post')
+        self.assertEqual(only_post.slug, 'my-first-post')
+        self.assertEqual(only_post.get_absolute_url(), 'blog/2014/10/29/my-first-post/')
+
+        # check post url
+        post_url = only_post.get_absolute_url()
+        response = self.client.get(post_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(post.title in response.content)
+
+
 
