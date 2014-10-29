@@ -1,6 +1,7 @@
 from django.test import TestCase, LiveServerTestCase, Client
 from django.utils import timezone
 from blogengine.models import Post
+import markdown
 from selenium import webdriver
 
 # Create your tests here.
@@ -75,15 +76,15 @@ class AdminTest(LiveServerTestCase):
         self.assertEquals(len(all_post), 1)
 
 
-class PostViewTest(object):
+class PostViewTest(LiveServerTestCase):
     """docstring for PostViewTest"""
-    def setUp(self, arg):
+    def setUp(self):
         self.client = Client()
 
     def test_index(self):
         post = Post()
         post.title = 'My first post'
-        post.text = 'This is a test post checking from the test.py',
+        post.text = 'This is [my first blog post](http://127.0.0.1:8000/blog/)',
         post.pub_date = timezone.now()
         post.save()
         all_post = Post.objects.all()
@@ -91,8 +92,18 @@ class PostViewTest(object):
 
         # fetch the index
         response = self.client.get('/blog/')
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
+
+        # check the post title in response
         self.assertTrue(post.title in response.content)
-        self.assertTrue(post.text in response.content)
+
+        # check the post text in response
+        self.assertTrue(markdown.markdown(post.text) in response.content)
+
+        # check the post date year in response
         self.assertTrue(str(post.pub_date.year) in response.content)
-        self.assertTrue(str(post.pub_date.day) in response.content)        
+        self.assertTrue(str(post.pub_date.day) in response.content)
+
+        # check the link is markedup as properly
+        self.assertTrue('<a href="http://127.0.0.1:8000/blog/">my first blog post</a>' in response.content)
+
