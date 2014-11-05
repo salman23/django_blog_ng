@@ -1,5 +1,6 @@
 from django.db import models
-
+from django.contrib.auth.models import User
+from django.contrib.sites.models import Site
 # Create your models here.
 
 
@@ -8,6 +9,8 @@ class Post(models.Model):
     pub_date = models.DateTimeField()
     text = models.TextField()
     slug = models.SlugField(max_length=250, unique=True)
+    author = models.ForeignKey(User)
+    site = models.ForeignKey(Site, default="1")
 
     def __unicode__(self):
         return self.title
